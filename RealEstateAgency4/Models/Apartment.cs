@@ -1,10 +1,15 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RealEstateAgency4.Models;
 
 public partial class Apartment
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ApartmentId { get; set; }
 
     public string? Name { get; set; }
@@ -26,4 +31,7 @@ public partial class Apartment
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 
     public virtual ICollection<Seller> Sellers { get; set; } = new List<Seller>();
+
+
+
 }

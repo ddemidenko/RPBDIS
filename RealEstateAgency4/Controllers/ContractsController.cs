@@ -21,7 +21,7 @@ namespace RealEstateAgency4.Controllers
         // GET: Contracts
         public async Task<IActionResult> Index()
         {
-            var realEstateAgencyContext = _context.Contracts.Include(c => c.Buyer).Include(c => c.Seller);
+            var realEstateAgencyContext = _context.Contracts.Include(c => c.Seller);
             return View(await realEstateAgencyContext.ToListAsync());
         }
 
@@ -34,7 +34,6 @@ namespace RealEstateAgency4.Controllers
             }
 
             var contract = await _context.Contracts
-                .Include(c => c.Buyer)
                 .Include(c => c.Seller)
                 .FirstOrDefaultAsync(m => m.ContractId == id);
             if (contract == null)
@@ -48,8 +47,7 @@ namespace RealEstateAgency4.Controllers
         // GET: Contracts/Create
         public IActionResult Create()
         {
-            ViewData["BuyerId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId");
-            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "SellerId");
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "FullName");
             return View();
         }
 
@@ -66,8 +64,7 @@ namespace RealEstateAgency4.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BuyerId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", contract.BuyerId);
-            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "SellerId", contract.SellerId);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "FullName", contract.SellerId);
             return View(contract);
         }
 
@@ -84,8 +81,7 @@ namespace RealEstateAgency4.Controllers
             {
                 return NotFound();
             }
-            ViewData["BuyerId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", contract.BuyerId);
-            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "SellerId", contract.SellerId);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "FullName", contract.SellerId);
             return View(contract);
         }
 
@@ -121,8 +117,7 @@ namespace RealEstateAgency4.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BuyerId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", contract.BuyerId);
-            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "SellerId", contract.SellerId);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "SellerId", "FullName", contract.SellerId);
             return View(contract);
         }
 
@@ -135,7 +130,6 @@ namespace RealEstateAgency4.Controllers
             }
 
             var contract = await _context.Contracts
-                .Include(c => c.Buyer)
                 .Include(c => c.Seller)
                 .FirstOrDefaultAsync(m => m.ContractId == id);
             if (contract == null)

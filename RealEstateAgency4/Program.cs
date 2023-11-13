@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
 namespace RealEstateAgency4
 {
@@ -7,49 +8,36 @@ namespace RealEstateAgency4
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            string connection = builder.Configuration.GetConnectionString("SqlServerConnection")!;
 
-            var services = builder.Services;
-            // внедрение зависимости для доступа к БД с использованием EF
-            string connection = builder.Configuration.GetConnectionString("SqlServerConnection");
-            services.AddDbContext<RealEstateAgencyContext>(options => options.UseSqlServer(connection));
-            // добавление кэширования
-            services.AddMemoryCache();
+            builder.Services.AddDbContext<RealEstateAgencyContext>(options => options.UseSqlServer(connection));
 
-            // добавление поддержки сессии
-            services.AddDistributedMemoryCache();
-            services.AddSession();
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
+            builder.Services.AddSession();
 
-            services.AddControllersWithViews();
-            //Использование MVC - отключено
-            //services.AddControllersWithViews();
             var app = builder.Build();
-            // добавляем поддержку статических файлов
-            app.UseStaticFiles();
 
-            // добавляем поддержку сессий
-            app.UseSession();
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
             }
 
             app.UseHttpsRedirection();
-            app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseSession();
+            app.UseDBInitializer();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
-            }); ;
+            app.UseAuthorization();
 
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
         }

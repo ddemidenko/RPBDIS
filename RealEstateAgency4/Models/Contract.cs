@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RealEstateAgency4.Models;
 
@@ -9,9 +10,8 @@ public partial class Contract
 
     public DateTime? DateOfContract { get; set; }
 
+    [Display(Name = "Name")]
     public int? SellerId { get; set; }
-
-    public int? BuyerId { get; set; }
 
     public decimal? DealAmount { get; set; }
 
@@ -21,7 +21,6 @@ public partial class Contract
 
     public string? Fiobuyer { get; set; }
 
-    public virtual Apartment? Buyer { get; set; }
 
     public virtual ICollection<ContractService> ContractServices { get; set; } = new List<ContractService>();
 

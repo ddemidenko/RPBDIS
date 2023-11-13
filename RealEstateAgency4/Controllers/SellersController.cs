@@ -47,7 +47,7 @@ namespace RealEstateAgency4.Controllers
         // GET: Sellers/Create
         public IActionResult Create()
         {
-            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId");
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "Name");
             return View();
         }
 
@@ -64,7 +64,7 @@ namespace RealEstateAgency4.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "Name", seller.ApartmentId);
             return View(seller);
         }
 
@@ -81,7 +81,7 @@ namespace RealEstateAgency4.Controllers
             {
                 return NotFound();
             }
-            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "Name", seller.ApartmentId);
             return View(seller);
         }
 
@@ -117,7 +117,7 @@ namespace RealEstateAgency4.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "ApartmentId", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "ApartmentId", "Name", seller.ApartmentId);
             return View(seller);
         }
 

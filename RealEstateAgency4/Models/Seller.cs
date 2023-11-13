@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace RealEstateAgency4.Models;
 
@@ -19,6 +20,7 @@ public partial class Seller
 
     public string? PassportData { get; set; }
 
+    [Display(Name ="Name")]
     public int? ApartmentId { get; set; }
 
     public string? ApartmentAddress { get; set; }

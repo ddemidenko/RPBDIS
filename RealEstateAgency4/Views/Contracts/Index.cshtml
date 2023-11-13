@@ -29,9 +29,6 @@
                 @Html.DisplayNameFor(model => model.Fiobuyer)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Buyer)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Seller)
             </th>
             <th></th>
@@ -56,10 +53,7 @@
                 @Html.DisplayFor(modelItem => item.Fiobuyer)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Buyer.ApartmentId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Seller.SellerId)
+                @Html.DisplayFor(modelItem => item.Seller.FullName)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ContractId">Edit</a> |
