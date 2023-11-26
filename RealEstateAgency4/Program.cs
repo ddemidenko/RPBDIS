@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
+using Microsoft.AspNetCore.Identity;
 namespace RealEstateAgency4
 {
     public class Program
@@ -11,6 +12,12 @@ namespace RealEstateAgency4
             string connection = builder.Configuration.GetConnectionString("SqlServerConnection")!;
 
             builder.Services.AddDbContext<RealEstateAgencyContext>(options => options.UseSqlServer(connection));
+
+            builder.Services
+            .AddDefaultIdentity<IdentityUser>()
+            .AddDefaultTokenProviders()
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<RealEstateAgencyContext>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -32,9 +39,10 @@ namespace RealEstateAgency4
             app.UseRouting();
             app.UseSession();
             app.UseDBInitializer();
+                        app.UseAuthentication();;
 
             app.UseAuthorization();
-
+            app.MapRazorPages();
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

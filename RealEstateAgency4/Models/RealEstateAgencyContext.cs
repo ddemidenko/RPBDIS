@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace RealEstateAgency4.Models;
 
-public partial class RealEstateAgencyContext : DbContext
+public partial class RealEstateAgencyContext : IdentityDbContext
 {
     public RealEstateAgencyContext()
     {

@@ -265,3 +265,11 @@ D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\ru\Microsoft.Cod
 D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
 D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
 D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.AspNetCore.Cryptography.Internal.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.AspNetCore.Cryptography.KeyDerivation.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.Extensions.Identity.Core.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.Extensions.Identity.Stores.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.AspNetCore.Identity.UI.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\bin\Debug\net6.0\Microsoft.Extensions.FileProviders.Embedded.dll
+D:\GGTU\3COURSE\РПБДИС\RealEstateAgency4\obj\Debug\net6.0\RealEstateAgency4.MvcApplicationPartsAssemblyInfo.cs

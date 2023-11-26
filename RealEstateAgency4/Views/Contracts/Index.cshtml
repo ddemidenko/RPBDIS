@@ -1,27 +1,84 @@
-﻿@model IEnumerable<RealEstateAgency4.Models.Contract>
+﻿@model ContractsViewModel
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    DateTime? DateOfContract = Model.DateOfContract;
+    Decimal DealAmount = Model.DealAmount;
+    Decimal ServiceCost = Model.ServiceCost;
+    string Employee = Model.Employee;
+    string Fiobuyer = Model.Fiobuyer;
+    string SellerName = Model.SellerName;
 }
 
-<h1>Index</h1>
+<h1>Договора</h1>
+<p></p>
+<div class="d-flex justify-content-between align-items-center">
+    @if (User.IsInRole("admin"))
+    {
+        <p>
+            <a asp-action="Create">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16">
+                    <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                </svg>
+            </a>
+        </p>
+    }
+    <div class="form-group">
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z" />
+            </svg>
+        </button>
+    </div>
+</div>
+<div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Фильтры</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="container mt-4">
+        <form class="form-inline" action="@Url.Action("Index", "Contracts")" method="post">
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+            <div class="form-group mr-2">
+                <label for="DateOfContract">Дата:</label>
+                <input asp-for="@Model.DateOfContract" name="DateOfContract" type="date" class="form-control" style="width: 120px;">
+            </div>
+
+            <div class="form-group mr-2">
+                <label for="DealAmount">Цена сделки:</label>
+                @Html.TextBox("DealAmount", DealAmount, new { @class = "form-control", style = "width: 120px;" })
+            </div>
+
+            <div class="form-group mr-2">
+                <label for="ServiceCost">Стоимость услуги:</label>
+                @Html.TextBox("ServiceCost", ServiceCost, new { @class = "form-control", style = "width: 120px;" })
+            </div>
+
+            <div class="form-group mr-2">
+                <label for="Employee">Сотрудник:</label>
+                @Html.TextBox("Employee", Employee, new { @class = "form-control", style = "width: 200px;" })
+            </div>
+
+            <div class="form-group mr-2">
+                <label for="Fiobuyer">Покупатель:</label>
+                @Html.TextBox("Fiobuyer", Fiobuyer, new { @class = "form-control", style = "width: 200px;" })
+            </div>
+
+            <div class="form-group mr-2">
+                <label for="SellerName">Продавец:</label>
+                @Html.TextBox("SellerName", SellerName, new { @class = "form-control", style = "width: 200px;" })
+            </div>
+
+            <button type="submit" class="btn btn-primary">Найти</button>
+        </form>
+
+    </div>
+</div>
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.DateOfContract)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DealAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ServiceCost)
-            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Employee)
             </th>
@@ -29,38 +86,124 @@
                 @Html.DisplayNameFor(model => model.Fiobuyer)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Seller)
+                @Html.DisplayNameFor(model => model.SellerName)
             </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.sortViewModel.DateOfContractSort>
+                    @Html.DisplayNameFor(model => model.DateOfContract)
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.sortViewModel.DealAmountSort>
+                    @Html.DisplayNameFor(model => model.DealAmount)
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder=@Model.sortViewModel.ServiceCostSort>
+                    @Html.DisplayNameFor(model => model.ServiceCost)
+                </a>            </th>
+            
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model.contracts) {
         <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Employee)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Fiobuyer)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Seller.FullName)
+                </td>
             <td>
                 @Html.DisplayFor(modelItem => item.DateOfContract)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.DealAmount)
+                    @Html.DisplayFor(modelItem => item.DealAmount) ₽
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ServiceCost)
+                    @Html.DisplayFor(modelItem => item.ServiceCost) ₽
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Employee)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fiobuyer)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Seller.FullName)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ContractId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ContractId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ContractId">Delete</a>
-            </td>
-        </tr>
+            
+                @if (User.IsInRole("admin"))
+                {
+                    <td>
+                        <div class="col-md-12 d-flex">
+                            <a asp-action="Edit" asp-route-id="@item.Id">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                                </svg>
+                            </a>
+                            <a asp-action="Details" asp-route-id="@item.Id">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
+                                </svg>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.Id">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
+                            </svg>
+                        </a>
+                    </td>
+                }
+            </tr>
 }
     </tbody>
 </table>
+
+@{
+    var totalPages = Model.pageViewModel.TotalPages;
+    var currentPage = Model.pageViewModel.PageNumber;
+}
+
+<div>
+    <ul class="pagination pagination-sm">
+        @if (currentPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })">&laquo;</a>
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+        }
+
+        @for (int i = Math.Max(1, currentPage - 1); i <= Math.Min(totalPages, currentPage + 1); i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+            </li>
+        }
+
+        @if (currentPage < totalPages)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">&raquo;</a>
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+        }
+    </ul>
+</div>

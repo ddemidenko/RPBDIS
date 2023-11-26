@@ -28,14 +28,16 @@ namespace RealEstateAgency4.Middleware
         {
             for (int apartmentId = 1; apartmentId <= 35; apartmentId++)
             {
-                string apartmentName = "Apartment_" + apartmentId.ToString();
-                string apartmentDescription = "Description for " + apartmentName;
+                string apartmentName = "Квартира " + apartmentId.ToString();
+                string apartmentDescription = "Описание для " + apartmentName;
                 int numberOfRooms = new Random().Next(1, 5);
                 decimal area = (decimal)(new Random().NextDouble() * 200);
-                bool separateBathroom = new Random().Next(2) == 0;
-                bool hasPhone = new Random().Next(2) == 0;
+
+                bool separateBathroom = new Random().Next(2) == 0 ? true : false;
+                bool hasPhone = new Random().Next(2) == 0 ? true : false;
+
                 decimal maxPrice = (decimal)(new Random().NextDouble() * 500000);
-                string additionalPreferences = "Additional preferences for " + apartmentName;
+                string additionalPreferences = "Дополнительные предпочтения для " + apartmentName;
 
                 dbContext.Apartments.Add(new Apartment
                 {
@@ -53,26 +55,37 @@ namespace RealEstateAgency4.Middleware
             dbContext.SaveChanges();
         }
 
+
+
+
         private static void SeedSellers(RealEstateAgencyContext dbContext)
         {
             for (int sellerId = 1; sellerId <= 35; sellerId++)
             {
-                string fullName = "Seller_" + sellerId.ToString();
-                string gender = new Random().Next(2) == 0 ? "Male" : "Female";
-                DateTime dateOfBirth = DateTime.Now.AddYears(-new Random().Next(30, 60));
-                string address = "Address for " + fullName;
-                string phone = "123-456-7890";
-                string passportData = "Passport data for " + fullName;
+                DateTime start = new DateTime(2023, 1, 1);
+                DateTime randomDate = start.AddYears(-new Random().Next(30, 60));
+
+                string fullName = "Продавец " + sellerId.ToString();
+                string gender = new Random().Next(2) == 0 ? "Муж." : "Жен.";
+                string address = "Адрес " + fullName;
+                string passportData = "Паспортные данные для " + fullName;
                 int apartmentId = new Random().Next(1, 35);
-                string apartmentAddress = "Apartment address for " + fullName;
+                string apartmentAddress = "Адрес квартиры для " + fullName;
                 decimal price = (decimal)(new Random().NextDouble() * 500000);
-                string additionalInformation = "Additional information for " + fullName;
+                string additionalInformation = "Дополнительная информация для " + fullName;
+
+                // Генерируем уникальный телефонный номер
+                string phone;
+                do
+                {
+                    phone = GenerateRandomPhoneNumber();
+                } while (dbContext.Sellers.Any(s => s.Phone == phone));
 
                 dbContext.Sellers.Add(new Seller
                 {
                     FullName = fullName,
                     Gender = gender,
-                    DateOfBirth = dateOfBirth,
+                    DateOfBirth = randomDate,
                     Address = address,
                     Phone = phone,
                     PassportData = passportData,
@@ -86,12 +99,20 @@ namespace RealEstateAgency4.Middleware
             dbContext.SaveChanges();
         }
 
+        // Метод для генерации случайного телефонного номера
+        private static string GenerateRandomPhoneNumber()
+        {
+            Random random = new Random();
+            return $"{random.Next(100, 999)}-{random.Next(100, 999)}-{random.Next(1000, 9999)}";
+        }
+
+
         private static void SeedServices(RealEstateAgencyContext dbContext)
         {
             for (int i = 1; i <= 1000; i++)
             {
-                string serviceName = "Service_" + i;
-                string description = $"Description for {serviceName}";
+                string serviceName = "Услуга " + i;
+                string description = $"Описание для {serviceName}";
                 decimal price = (decimal)(new Random().NextDouble() * 100);
 
                 dbContext.Services.Add(new Service
@@ -114,12 +135,15 @@ namespace RealEstateAgency4.Middleware
                 int sellerId = new Random().Next(1, 35);
                 decimal dealAmount = (decimal)(new Random().NextDouble() * 500000);
                 decimal serviceCost = (decimal)(new Random().NextDouble() * 1000);
-                string employee = "Employee_" + contractId.ToString();
-                string fioBuyer = "Buyer_" + contractId.ToString();
+                string employee = "Сотрудник " + contractId.ToString();
+                string fioBuyer = "Покупатель " + contractId.ToString();
+                DateTime start = new DateTime(2023, 1, 1);
+                int range = (DateTime.Now - start).Days;
+                DateTime randomDate = start.AddDays(new Random().Next(range));
 
                 dbContext.Contracts.Add(new Contract
                 {
-                    DateOfContract = DateTime.Now.AddDays(-contractId),
+                    DateOfContract = randomDate,
                     SellerId = sellerId,
                     DealAmount = dealAmount,
                     ServiceCost = serviceCost,

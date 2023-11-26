@@ -5,11 +5,11 @@ namespace RealEstateAgency4.Models;
 
 public partial class ContractService
 {
-    public int ContractServiceId { get; set; }
+    public int Id { get; set; }
 
-    public int? ContractId { get; set; }
+    public int ContractId { get; set; }
 
-    public int? ServiceId { get; set; }
+    public int ServiceId { get; set; }
 
     public virtual Contract? Contract { get; set; }
 
