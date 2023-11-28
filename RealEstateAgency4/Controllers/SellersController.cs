@@ -39,8 +39,8 @@ namespace RealEstateAgency4.Controllers
 
             IQueryable<Seller> sellerContext = _context.Sellers;
 
-                sellerContext = Sort_Search(sellerContext, sortOrder, sellers.DateOfBirth, sellers.FullName ?? "",sellers.Gender ?? "", sellers.Address ?? "",  sellers.Phone ?? "", sellers.PassportDate ?? "", sellers.ApartmentAddress ?? "", sellers.Price,
-                sellers.AdditionalInformation ?? "", sellers.ApartmentName ?? "");
+            sellerContext = Sort_Search(sellerContext, sortOrder, sellers.DateOfBirth, sellers.FullName ?? "", sellers.Gender ?? "", sellers.Address ?? "", sellers.Phone ?? "", sellers.PassportDate ?? "", sellers.ApartmentAddress ?? "", sellers.Price,
+            sellers.AdditionalInformation ?? "", sellers.ApartmentName ?? "");
 
             // Разбиение на страницы
             var count = sellerContext.Count();
@@ -97,7 +97,7 @@ namespace RealEstateAgency4.Controllers
         // GET: Sellers/Create
         public IActionResult Create()
         {
-            ViewData["Id"] = new SelectList(_context.Apartments, "Id", "Name");
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name");
             return View();
         }
 
@@ -114,7 +114,7 @@ namespace RealEstateAgency4.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Id"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
             return View(seller);
         }
 
@@ -126,12 +126,13 @@ namespace RealEstateAgency4.Controllers
                 return NotFound();
             }
 
-            var seller = await _context.Sellers.FindAsync(id);
+            var seller = await _context.Sellers.Include(m => m.Apartment)
+                .Include(s => s.Apartment).FirstOrDefaultAsync(m => m.Id == id);
             if (seller == null)
             {
                 return NotFound();
             }
-            ViewData["Id"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
             return View(seller);
         }
 
@@ -167,7 +168,7 @@ namespace RealEstateAgency4.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Id"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
+            ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
             return View(seller);
         }
 
@@ -204,14 +205,14 @@ namespace RealEstateAgency4.Controllers
             {
                 _context.Sellers.Remove(seller);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool SellerExists(int id)
         {
-          return (_context.Sellers?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Sellers?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
         private IQueryable<Seller> Sort_Search(IQueryable<Seller> sellers, SortState sortOrder, DateTime? searchDateOfBirth, string searchFullName,

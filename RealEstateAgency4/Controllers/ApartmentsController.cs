@@ -106,7 +106,6 @@ namespace RealEstateAgency4.Controllers
             return View(apartment);
         }
 
-        // GET: Apartments/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null || _context.Apartments == null)
@@ -122,9 +121,6 @@ namespace RealEstateAgency4.Controllers
             return View(apartment);
         }
 
-        // POST: Apartments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Apartment apartment)
@@ -157,7 +153,6 @@ namespace RealEstateAgency4.Controllers
             return View(apartment);
         }
 
-        // GET: Apartments/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Apartments == null)
@@ -175,7 +170,6 @@ namespace RealEstateAgency4.Controllers
             return View(apartment);
         }
 
-        // POST: Apartments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

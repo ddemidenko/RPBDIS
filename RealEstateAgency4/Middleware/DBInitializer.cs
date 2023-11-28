@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using RealEstateAgency4.Models;
 using System.Threading.Tasks;
 
@@ -10,11 +11,11 @@ namespace RealEstateAgency4.Middleware
         private readonly RequestDelegate _next;
         public DBInitializer(RequestDelegate next) => _next = next;
 
-        public Task Invoke(HttpContext context, IServiceProvider serviceProvider, RealEstateAgencyContext dbContext)
+        public Task Invoke(HttpContext context, IServiceProvider serviceProvider, RealEstateAgencyContext dbContext, UserManager<IdentityUser> userManager)
         {
             if (!(context.Session.Keys.Contains("starting")))
             {
-                DataInitializer.Initialize(dbContext);
+                DataInitializer.Initialize(dbContext, userManager);
                 context.Session.SetString("starting", "Yes");
             }
             return _next.Invoke(context);

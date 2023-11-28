@@ -34,7 +34,7 @@ namespace RealEstateAgency4.Controllers
 
             var contracts = HttpContext.Session.Get<ContractsViewModel>("Contract");
 
-            if(contracts == null)
+            if (contracts == null)
             {
                 contracts = new ContractsViewModel();
             }
@@ -43,7 +43,7 @@ namespace RealEstateAgency4.Controllers
 
             contractContext = Sort_Search(contractContext, sortOrder, contracts.DateOfContract, contracts.SellerName ?? "", contracts.DealAmount, contracts.ServiceCost,
                 contracts.Employee ?? "", contracts.Fiobuyer ?? "");
-            
+
             // Разбиение на страницы
             var count = contractContext.Count();
             contractContext = contractContext.Skip((page - 1) * pageSize).Take(pageSize);
@@ -73,8 +73,24 @@ namespace RealEstateAgency4.Controllers
             return RedirectToAction("Index");
         }
 
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null || _context.Contracts == null)
+            {
+                return NotFound();
+            }
 
-        // GET: Contracts/Details/5
+            var contract = await _context.Contracts
+                .Include(c => c.Seller)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (contract == null)
+            {
+                return NotFound();
+            }
+
+            return View(contract);
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null || _context.Contracts == null)
@@ -96,7 +112,7 @@ namespace RealEstateAgency4.Controllers
         // GET: Contracts/Create
         public IActionResult Create()
         {
-            ViewData["Id"] = new SelectList(_context.Sellers, "Id", "FullName");
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName");
             return View();
         }
 
@@ -113,7 +129,7 @@ namespace RealEstateAgency4.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Id"] = new SelectList(_context.Sellers, "Id", "FullName", contract.Id);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName", contract.Id);
             return View(contract);
         }
 
@@ -130,7 +146,7 @@ namespace RealEstateAgency4.Controllers
             {
                 return NotFound();
             }
-            ViewData["Id"] = new SelectList(_context.Sellers, "Id", "FullName", contract.Id);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName", contract.Id);
             return View(contract);
         }
 
@@ -166,30 +182,10 @@ namespace RealEstateAgency4.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Id"] = new SelectList(_context.Sellers, "Id", "FullName", contract.SellerId);
+            ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName", contract.SellerId);
             return View(contract);
         }
 
-        // GET: Contracts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Contracts == null)
-            {
-                return NotFound();
-            }
-
-            var contract = await _context.Contracts
-                .Include(c => c.Seller)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (contract == null)
-            {
-                return NotFound();
-            }
-
-            return View(contract);
-        }
-
-        // POST: Contracts/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -203,17 +199,17 @@ namespace RealEstateAgency4.Controllers
             {
                 _context.Contracts.Remove(contract);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ContractExists(int id)
         {
-          return (_context.Contracts?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Contracts?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        private IQueryable<Contract> Sort_Search(IQueryable<Contract> contracts, SortState sortOrder, DateTime? searchDate, string searchSellerName, 
+        private IQueryable<Contract> Sort_Search(IQueryable<Contract> contracts, SortState sortOrder, DateTime? searchDate, string searchSellerName,
             decimal searchDealAmount, decimal searchServiceCost, string searchEmployee, string searchFiobuyer)
         {
             switch (sortOrder)
@@ -241,11 +237,11 @@ namespace RealEstateAgency4.Controllers
             }
             contracts = contracts.Include(o => o.Seller)
                 .Where(c => (c.DateOfContract == searchDate || searchDate == new DateTime() || searchDate == null)
-                &&(c.Seller.FullName.Contains(searchSellerName ?? ""))
-                &&(c.DealAmount == searchDealAmount || searchDealAmount == 0)
-                &&(c.ServiceCost == searchServiceCost || searchServiceCost == 0)
-                &&(c.Employee == searchEmployee || searchEmployee.IsNullOrEmpty())
-                &&(c.Fiobuyer == searchFiobuyer || searchFiobuyer.IsNullOrEmpty()));
+                && (c.Seller.FullName.Contains(searchSellerName ?? ""))
+                && (c.DealAmount == searchDealAmount || searchDealAmount == 0)
+                && (c.ServiceCost == searchServiceCost || searchServiceCost == 0)
+                && (c.Employee == searchEmployee || searchEmployee.IsNullOrEmpty())
+                && (c.Fiobuyer == searchFiobuyer || searchFiobuyer.IsNullOrEmpty()));
 
 
 

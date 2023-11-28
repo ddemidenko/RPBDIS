@@ -21,7 +21,10 @@
             </div>
             <div class="form-group">
                 <label asp-for="Gender" class="control-label"></label>
-                <input asp-for="Gender" class="form-control" />
+                <select asp-for="Gender" class="form-select">
+                    <option value="Муж.">Мужской</option>
+                    <option value="Жен.">Женский</option>
+                </select>
                 <span asp-validation-for="Gender" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -64,6 +67,7 @@
                 <input asp-for="AdditionalInformation" class="form-control" />
                 <span asp-validation-for="AdditionalInformation" class="text-danger"></span>
             </div>
+            <p></p>
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2-fill" viewBox="0 0 16 16">
@@ -75,7 +79,7 @@
         </form>
     </div>
 </div>
-
+<p></p>
 <div>
     <a asp-action="Index">
         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-skip-backward-circle" viewBox="0 0 16 16">
