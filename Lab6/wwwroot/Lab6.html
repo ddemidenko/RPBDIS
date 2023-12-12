@@ -1,0 +1,198 @@
+﻿﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Список договоров и услуг</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <h2>Список договоров и услуг</h2>
+    <form name="insuranceCaseForm">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group col-md-5">
+            <label for="contractId">Номер договора:</label>
+            <input class="form-control" name="contractId" type="number" />
+        </div>
+        <div class="form-group col-md-5">
+            <label for="serviceId">Номер услуги:</label>
+            <input class="form-control" name="serviceId" type="number" />
+        </div>
+        <div class="panel-body">
+            <button type="submit" id="submit" class="btn btn-primary">Сохранить</button>
+        </div>
+    </form>
+    <button id="reset" onclick="reset()" class="btn btn-primary">Сбросить</button>
+    <table class="table table-condensed table-striped col-md-6">
+        <thead><tr><th>Id</th><th>Дата</th><th>Сумма сделки</th><th>Стоимость услуги</th><th>Продавец</th><th>Покупатель</th><th>Название услуги</th><th>Описание услуги</th><th>Стоимость услуги</th><th></th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script>
+
+        async function GetContractServices() {
+            const response = await fetch("/api/Home", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const insuranceCases = await response.json();
+                let rows = document.querySelector("tbody");
+                insuranceCases.forEach(insuranceCase => {
+                    rows.append(row(insuranceCase));
+                });
+            }
+        }
+
+        async function GetContractService(id) {
+            const response = await fetch("/api/Home/" + id, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const insuranceCase = await response.json();
+                const form = document.forms["insuranceCaseForm"];
+                form.elements["id"].value = insuranceCase.id;
+                form.elements["contractId"].value = insuranceCase.contractId;
+                form.elements["serviceId"].value = insuranceCase.serviceId;
+            }
+        }
+
+        async function CreateContractService(serviceId, contractId) {
+
+            const response = await fetch("api/Home", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    serviceId: serviceId,
+                    contractId: contractId
+                })
+            });
+            if (response.ok === true) {
+                await response.json();
+                reset();
+            }
+        }
+
+        async function EditContractService(id, serviceId, contractId) {
+            const response = await fetch("api/Home", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: id,
+                    serviceId: serviceId,
+                    contractId: contractId
+
+                })
+            });
+            if (response.ok === true) {
+                await response.json();
+                reset();
+            }
+        }
+
+        async function DeleteContractService(id) {
+            const response = await fetch("/api/Home/" + id, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const insuranceCase = await response.json();
+                document.querySelector("tr[data-rowid='" + insuranceCase.id + "']").remove();
+            }
+        }
+
+        function reset() {
+            document.location.reload();
+        }
+
+        function row(insuranceCase) {
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", insuranceCase.id);
+
+            const idTd = document.createElement("td");
+            idTd.append(insuranceCase.id);
+            tr.append(idTd);
+
+            const dateOfContractTd = document.createElement("td");
+            dateOfContractTd.append(new Date(insuranceCase.contract.dateOfContract).toDateString());
+            tr.append(dateOfContractTd);
+
+            const dealAmountTd = document.createElement("td");
+            dealAmountTd.append(insuranceCase.contract.dealAmount);
+            tr.append(dealAmountTd);
+
+            const serviceCostTd = document.createElement("td");
+            serviceCostTd.append(insuranceCase.contract.serviceCost);
+            tr.append(serviceCostTd);
+
+            const employeeTd = document.createElement("td");
+            employeeTd.append(insuranceCase.contract.employee);
+            tr.append(employeeTd);
+
+            const fiobuyerTd = document.createElement("td");
+            fiobuyerTd.append(insuranceCase.contract.fiobuyer);
+            tr.append(fiobuyerTd);
+
+
+            const nameTd = document.createElement("td");
+            nameTd.append(insuranceCase.service.name);
+            tr.append(nameTd);
+
+            const descriptionTd = document.createElement("td");
+            descriptionTd.append(insuranceCase.service.description);
+            tr.append(descriptionTd);
+
+            const priceTd = document.createElement("td");
+            priceTd.append(insuranceCase.service.price);
+            tr.append(priceTd);
+
+            const linksTd = document.createElement("td");
+
+            const editLink = document.createElement("a");
+            editLink.setAttribute("data-id", insuranceCase.id);
+            editLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            editLink.append("Изменить");
+            editLink.addEventListener("click", e => {
+
+                e.preventDefault();
+                GetContractService(insuranceCase.id);
+            });
+            linksTd.append(editLink);
+
+            const removeLink = document.createElement("a");
+            removeLink.setAttribute("data-id", insuranceCase.id);
+            removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            removeLink.append("Удалить");
+            removeLink.addEventListener("click", e => {
+
+                e.preventDefault();
+                DeleteContractService(insuranceCase.id);
+            });
+
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+
+            return tr;
+        }
+
+        document.forms["insuranceCaseForm"].addEventListener("submit", e => {
+            e.preventDefault();
+            const form = document.forms["insuranceCaseForm"];
+            const id = form.elements["id"].value;
+            const serviceId = form.elements["serviceId"].value;
+            const contractId = form.elements["contractId"].value;
+
+            if (id == 0)
+                CreateContractService(serviceId, contractId);
+            else
+                EditContractService(id, serviceId, contractId);
+        });
+
+        GetContractServices();
+
+    </script>
+</body>
+</html>

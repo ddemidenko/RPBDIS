@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RealEstateAgency4.Filters;
+using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
+using RealEstateAgency4.Services;
 using RealEstateAgency4.ViewModels;
 
 namespace RealEstateAgency4.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize]
     public class SellersController : Controller
     {
         private readonly RealEstateAgencyContext _context;
@@ -28,6 +30,8 @@ namespace RealEstateAgency4.Controllers
         // GET: Sellers
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             SellersViewModel sellersViewModel;
 
             var sellers = HttpContext.Session.Get<SellersViewModel>("Seller");
@@ -37,7 +41,7 @@ namespace RealEstateAgency4.Controllers
                 sellers = new SellersViewModel();
             }
 
-            IQueryable<Seller> sellerContext = _context.Sellers;
+            IEnumerable<Seller> sellerContext = cache.GetSellers();
 
             sellerContext = Sort_Search(sellerContext, sortOrder, sellers.DateOfBirth, sellers.FullName ?? "", sellers.Gender ?? "", sellers.Address ?? "", sellers.Phone ?? "", sellers.PassportDate ?? "", sellers.ApartmentAddress ?? "", sellers.Price,
             sellers.AdditionalInformation ?? "", sellers.ApartmentName ?? "");
@@ -75,17 +79,16 @@ namespace RealEstateAgency4.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: Sellers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
             if (id == null || _context.Sellers == null)
             {
                 return NotFound();
             }
 
-            var seller = await _context.Sellers
-                .Include(s => s.Apartment)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var seller = cache.GetSellers()
+                .FirstOrDefault(m => m.Id == id);
             if (seller == null)
             {
                 return NotFound();
@@ -94,40 +97,42 @@ namespace RealEstateAgency4.Controllers
             return View(seller);
         }
 
-        // GET: Sellers/Create
+        [Authorize(Roles = "admin")]
         public IActionResult Create()
         {
             ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name");
             return View();
         }
 
-        // POST: Sellers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Seller seller)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(seller);
                 await _context.SaveChangesAsync();
+                cache.SetSellers();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["ApartmentId"] = new SelectList(_context.Apartments, "Id", "Name", seller.ApartmentId);
             return View(seller);
         }
 
-        // GET: Sellers/Edit/5
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             if (id == null || _context.Sellers == null)
             {
                 return NotFound();
             }
 
-            var seller = await _context.Sellers.Include(m => m.Apartment)
-                .Include(s => s.Apartment).FirstOrDefaultAsync(m => m.Id == id);
+            var seller = cache.GetSellers().FirstOrDefault(m => m.Id == id);
             if (seller == null)
             {
                 return NotFound();
@@ -136,13 +141,14 @@ namespace RealEstateAgency4.Controllers
             return View(seller);
         }
 
-        // POST: Sellers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int id, Seller seller)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             if (id != seller.Id)
             {
                 return NotFound();
@@ -153,6 +159,7 @@ namespace RealEstateAgency4.Controllers
                 try
                 {
                     _context.Update(seller);
+                    cache.SetSellers();
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -172,17 +179,18 @@ namespace RealEstateAgency4.Controllers
             return View(seller);
         }
 
-        // GET: Sellers/Delete/5
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             if (id == null || _context.Sellers == null)
             {
                 return NotFound();
             }
 
-            var seller = await _context.Sellers
-                .Include(s => s.Apartment)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var seller = cache.GetSellers()
+                .FirstOrDefault(m => m.Id == id);
             if (seller == null)
             {
                 return NotFound();
@@ -191,22 +199,28 @@ namespace RealEstateAgency4.Controllers
             return View(seller);
         }
 
-        // POST: Sellers/Delete/5
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<SellersCache>();
+
             if (_context.Sellers == null)
             {
                 return Problem("Entity set 'RealEstateAgencyContext.Sellers'  is null.");
             }
-            var seller = await _context.Sellers.FindAsync(id);
+
+            var seller = cache.GetSellers()
+                .FirstOrDefault(m => m.Id == id);
             if (seller != null)
             {
                 _context.Sellers.Remove(seller);
             }
 
             await _context.SaveChangesAsync();
+            cache.SetSellers();
             return RedirectToAction(nameof(Index));
         }
 
@@ -215,7 +229,7 @@ namespace RealEstateAgency4.Controllers
             return (_context.Sellers?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        private IQueryable<Seller> Sort_Search(IQueryable<Seller> sellers, SortState sortOrder, DateTime? searchDateOfBirth, string searchFullName,
+        private IEnumerable<Seller> Sort_Search(IEnumerable<Seller> sellers, SortState sortOrder, DateTime? searchDateOfBirth, string searchFullName,
             string searchGender, string searchAddress, string searchPhone, string searchPassportDate, string searchApartmentAddress, decimal SellerPrice, string AdditionalInformation, string ApartmentName)
         {
             switch (sortOrder)
@@ -235,7 +249,7 @@ namespace RealEstateAgency4.Controllers
 
 
             }
-            sellers = sellers.Include(o => o.Apartment)
+            sellers = sellers
         .Where(c =>
             (c.DateOfBirth == searchDateOfBirth || searchDateOfBirth == DateTime.MinValue || searchDateOfBirth == null)
             && (c.FullName == searchFullName || searchFullName.IsNullOrEmpty())

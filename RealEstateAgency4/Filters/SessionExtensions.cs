@@ -8,7 +8,6 @@ namespace RealEstateAgency4.Filters
         {
             session.SetString(key, JsonConvert.SerializeObject(value));
         }
-        //Считывание параметризованного объекта из сессии
         public static T Get<T>(this ISession session, string key)
         {
             var value = session.GetString(key);

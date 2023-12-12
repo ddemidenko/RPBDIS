@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RealEstateAgency4.Filters;
+using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
+using RealEstateAgency4.Services;
 using RealEstateAgency4.ViewModels;
 
 namespace RealEstateAgency4.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize]
     public class ApartmentsController : Controller
     {
         private readonly RealEstateAgencyContext _context;
@@ -19,9 +21,9 @@ namespace RealEstateAgency4.Controllers
             _context = context;
         }
 
-        // GET: Apartments
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
             ApartmentsViewModel apartmentsViewModel;
 
             var apartments = HttpContext.Session.Get<ApartmentsViewModel>("Apartments");
@@ -35,11 +37,10 @@ namespace RealEstateAgency4.Controllers
 
             apartmentContext = Sort_Search(apartmentContext, sortOrder, apartments.Name ?? "", apartments.Description ?? "", apartments.NumberOfRooms,
                 apartments.AdditionalPreferences ?? "", apartments.MaxPrice, apartments.HasPhone, apartments.Area, apartments.SeparateBathroom);
-            // Разбиение на страницы
+
             var count = apartmentContext.Count();
             apartmentContext = apartmentContext.Skip((page - 1) * pageSize).Take(pageSize);
 
-            // Формирование модели для передачи представлению
             ApartmentsViewModel apartmentModel = new ApartmentsViewModel
             {
                 apartments = apartmentContext,
@@ -66,16 +67,17 @@ namespace RealEstateAgency4.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: Apartments/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
             if (id == null || _context.Apartments == null)
             {
                 return NotFound();
             }
 
-            var apartment = await _context.Apartments
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var apartment = cache.GetApartments()
+                .FirstOrDefault(m => m.Id == id);
             if (apartment == null)
             {
                 return NotFound();
@@ -83,37 +85,39 @@ namespace RealEstateAgency4.Controllers
 
             return View(apartment);
         }
-
-        // GET: Apartments/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Apartments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> Create(Apartment apartment)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(apartment);
                 await _context.SaveChangesAsync();
+                cache.SetApartments();
                 return RedirectToAction(nameof(Index));
             }
             return View(apartment);
         }
-
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
             if (id == null || _context.Apartments == null)
             {
                 return NotFound();
             }
 
-            var apartment = await _context.Apartments.FindAsync(id);
+            var apartment = cache.GetApartments().FirstOrDefault(m => m.Id == id);
             if (apartment == null)
             {
                 return NotFound();
@@ -123,8 +127,11 @@ namespace RealEstateAgency4.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int id, Apartment apartment)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
             if (id != apartment.Id)
             {
                 return NotFound();
@@ -136,6 +143,7 @@ namespace RealEstateAgency4.Controllers
                 {
                     _context.Update(apartment);
                     await _context.SaveChangesAsync();
+                    cache.SetApartments();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -152,16 +160,17 @@ namespace RealEstateAgency4.Controllers
             }
             return View(apartment);
         }
-
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
             if (id == null || _context.Apartments == null)
             {
                 return NotFound();
             }
 
-            var apartment = await _context.Apartments
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var apartment = cache.GetApartments().FirstOrDefault(m => m.Id == id);
             if (apartment == null)
             {
                 return NotFound();
@@ -172,15 +181,19 @@ namespace RealEstateAgency4.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var apartment = await _context.Apartments.FindAsync(id);
+            var cache = HttpContext.RequestServices.GetRequiredService<ApartmentsCache>();
+
+            var apartment = cache.GetApartments().FirstOrDefault(m => m.Id == id);
             if (apartment != null)
             {
                 _context.Apartments.Remove(apartment);
             }
 
             await _context.SaveChangesAsync();
+            cache.SetApartments();
             return RedirectToAction(nameof(Index));
         }
 
@@ -237,9 +250,7 @@ namespace RealEstateAgency4.Controllers
                 && (a.NumberOfRooms == searchNumberOfRooms || searchNumberOfRooms == 0)
                 && (a.Description == searchDescription || searchDescription.IsNullOrEmpty())
                 && (searchHasPhone == null || a.HasPhone == searchHasPhone)
-                && (searchSeparateBathroom == null || a.SeparateBathroom == searchHasPhone));
-
-
+                && (searchSeparateBathroom == null || a.SeparateBathroom == searchSeparateBathroom));
 
             return apartments;
         }

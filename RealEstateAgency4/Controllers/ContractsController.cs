@@ -10,12 +10,14 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RealEstateAgency4.Filters;
+using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
+using RealEstateAgency4.Services;
 using RealEstateAgency4.ViewModels;
 
 namespace RealEstateAgency4.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize]
     public class ContractsController : Controller
     {
         private readonly RealEstateAgencyContext _context;
@@ -27,9 +29,9 @@ namespace RealEstateAgency4.Controllers
             _context = context;
         }
 
-        // GET: Contracts
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
             ContractsViewModel contractsViewModel;
 
             var contracts = HttpContext.Session.Get<ContractsViewModel>("Contract");
@@ -39,16 +41,14 @@ namespace RealEstateAgency4.Controllers
                 contracts = new ContractsViewModel();
             }
 
-            IQueryable<Contract> contractContext = _context.Contracts;
+            IEnumerable<Contract> contractContext = cache.GetContracts();
 
             contractContext = Sort_Search(contractContext, sortOrder, contracts.DateOfContract, contracts.SellerName ?? "", contracts.DealAmount, contracts.ServiceCost,
                 contracts.Employee ?? "", contracts.Fiobuyer ?? "");
 
-            // Разбиение на страницы
             var count = contractContext.Count();
             contractContext = contractContext.Skip((page - 1) * pageSize).Take(pageSize);
 
-            // Формирование модели для передачи представлению
             ContractsViewModel contractModel = new ContractsViewModel
             {
                 contracts = contractContext,
@@ -75,14 +75,15 @@ namespace RealEstateAgency4.Controllers
 
         public async Task<IActionResult> Delete(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (id == null || _context.Contracts == null)
             {
                 return NotFound();
             }
 
-            var contract = await _context.Contracts
-                .Include(c => c.Seller)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var contract =  cache.GetContracts()
+                .FirstOrDefault(m => m.Id == id);
             if (contract == null)
             {
                 return NotFound();
@@ -93,14 +94,15 @@ namespace RealEstateAgency4.Controllers
 
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (id == null || _context.Contracts == null)
             {
                 return NotFound();
             }
 
-            var contract = await _context.Contracts
-                .Include(c => c.Seller)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var contract = cache.GetContracts()
+                .FirstOrDefault(m => m.Id == id);
             if (contract == null)
             {
                 return NotFound();
@@ -109,39 +111,40 @@ namespace RealEstateAgency4.Controllers
             return View(contract);
         }
 
-        // GET: Contracts/Create
         public IActionResult Create()
         {
             ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName");
             return View();
         }
 
-        // POST: Contracts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create(Contract contract)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(contract);
                 await _context.SaveChangesAsync();
+                cache.SetContracts();
                 return RedirectToAction(nameof(Index));
             }
             ViewData["SellerId"] = new SelectList(_context.Sellers, "Id", "FullName", contract.Id);
             return View(contract);
         }
-
-        // GET: Contracts/Edit/5
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (id == null || _context.Contracts == null)
             {
                 return NotFound();
             }
 
-            var contract = await _context.Contracts.FindAsync(id);
+            var contract = cache.GetContracts().FirstOrDefault(m => m.Id == id);
             if (contract == null)
             {
                 return NotFound();
@@ -150,13 +153,14 @@ namespace RealEstateAgency4.Controllers
             return View(contract);
         }
 
-        // POST: Contracts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int id, Contract contract)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (id != contract.Id)
             {
                 return NotFound();
@@ -168,6 +172,7 @@ namespace RealEstateAgency4.Controllers
                 {
                     _context.Update(contract);
                     await _context.SaveChangesAsync();
+                    cache.SetContracts();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -188,19 +193,24 @@ namespace RealEstateAgency4.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ContractsCache>();
+
             if (_context.Contracts == null)
             {
                 return Problem("Entity set 'RealEstateAgencyContext.Contracts'  is null.");
             }
-            var contract = await _context.Contracts.FindAsync(id);
+            var contract = cache.GetContracts().FirstOrDefault(m => m.Id == id);
+
             if (contract != null)
             {
                 _context.Contracts.Remove(contract);
             }
 
             await _context.SaveChangesAsync();
+            cache.SetContracts();
             return RedirectToAction(nameof(Index));
         }
 
@@ -209,7 +219,7 @@ namespace RealEstateAgency4.Controllers
             return (_context.Contracts?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        private IQueryable<Contract> Sort_Search(IQueryable<Contract> contracts, SortState sortOrder, DateTime? searchDate, string searchSellerName,
+        private IEnumerable<Contract> Sort_Search(IEnumerable<Contract> contracts, SortState sortOrder, DateTime? searchDate, string searchSellerName,
             decimal searchDealAmount, decimal searchServiceCost, string searchEmployee, string searchFiobuyer)
         {
             switch (sortOrder)
@@ -235,7 +245,7 @@ namespace RealEstateAgency4.Controllers
 
 
             }
-            contracts = contracts.Include(o => o.Seller)
+            contracts = contracts
                 .Where(c => (c.DateOfContract == searchDate || searchDate == new DateTime() || searchDate == null)
                 && (c.Seller.FullName.Contains(searchSellerName ?? ""))
                 && (c.DealAmount == searchDealAmount || searchDealAmount == 0)

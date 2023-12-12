@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using RealEstateAgency4.Middleware;
-using RealEstateAgency4.Models;
 using Microsoft.AspNetCore.Identity;
+using RealEstateAgency4.Services;
+using RealEstateAgency4.Models;
+
 namespace RealEstateAgency4
 {
     public class Program
@@ -13,23 +15,29 @@ namespace RealEstateAgency4
 
             builder.Services.AddDbContext<RealEstateAgencyContext>(options => options.UseSqlServer(connection));
 
+            builder.Services.AddTransient<ContractsCache>();
+            builder.Services.AddTransient<SellersCache>();
+            builder.Services.AddTransient<ApartmentsCache>();
+            builder.Services.AddTransient<ServicesCache>();
+
+            builder.Services.AddMemoryCache();
+
             builder.Services
             .AddDefaultIdentity<IdentityUser>()
             .AddDefaultTokenProviders()
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<RealEstateAgencyContext>();
 
-            // Add services to the container.
+
             builder.Services.AddControllersWithViews();
             builder.Services.AddSession();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+
                 app.UseHsts();
             }
 

@@ -10,12 +10,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RealEstateAgency4.Filters;
+using RealEstateAgency4.Middleware;
 using RealEstateAgency4.Models;
+using RealEstateAgency4.Services;
 using RealEstateAgency4.ViewModels;
 
 namespace RealEstateAgency4.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize]
     public class ServicesController : Controller
     {
         private readonly RealEstateAgencyContext _context;
@@ -26,9 +28,9 @@ namespace RealEstateAgency4.Controllers
             _context = context;
         }
 
-        // GET: Services
         public async Task<IActionResult> Index(SortState sortOrder, int page = 1)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
             ServicesViewModel servicesViewModel;
 
             var services = HttpContext.Session.Get<ServicesViewModel>("Service");
@@ -41,11 +43,10 @@ namespace RealEstateAgency4.Controllers
             IEnumerable<Service> serviceContext = _context.Services;
 
             serviceContext = Sort_Search(serviceContext, sortOrder, services.Name, services.Description, services.Price);
-            // Разбиение на страницы
+
             var count = serviceContext.Count();
             serviceContext = serviceContext.Skip((page - 1) * pageSize).Take(pageSize);
 
-            // Формирование модели для передачи представлению
             ServicesViewModel serviceModel = new ServicesViewModel
             {
                 services = serviceContext,
@@ -68,16 +69,17 @@ namespace RealEstateAgency4.Controllers
         }
 
 
-        // GET: Services/Details/5
         public async Task<IActionResult> Details(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
+
             if (id == null || _context.Services == null)
             {
                 return NotFound();
             }
 
-            var service = await _context.Services
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var service = cache.GetServices()
+                .FirstOrDefault(m => m.Id == id);
             if (service == null)
             {
                 return NotFound();
@@ -86,37 +88,41 @@ namespace RealEstateAgency4.Controllers
             return View(service);
         }
 
-        // GET: Services/Create
+        [Authorize(Roles = "admin")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Services/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Create(Service service)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
+
             if (ModelState.IsValid)
             {
                 _context.Add(service);
                 await _context.SaveChangesAsync();
+                cache.SetServices();
                 return RedirectToAction(nameof(Index));
             }
             return View(service);
         }
 
-        // GET: Services/Edit/5
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int? id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
+
             if (id == null || _context.Services == null)
             {
                 return NotFound();
             }
 
-            var service = await _context.Services.FindAsync(id);
+            var service = cache.GetServices().FirstOrDefault(m => m.Id == id);
             if (service == null)
             {
                 return NotFound();
@@ -124,13 +130,14 @@ namespace RealEstateAgency4.Controllers
             return View(service);
         }
 
-        // POST: Services/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Edit(int id, Service service)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
+
             if (id != service.Id)
             {
                 return NotFound();
@@ -142,6 +149,7 @@ namespace RealEstateAgency4.Controllers
                 {
                     _context.Update(service);
                     await _context.SaveChangesAsync();
+                    cache.SetServices();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -159,7 +167,7 @@ namespace RealEstateAgency4.Controllers
             return View(service);
         }
 
-        // GET: Services/Delete/5
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null || _context.Services == null)
@@ -177,22 +185,25 @@ namespace RealEstateAgency4.Controllers
             return View(service);
         }
 
-        // POST: Services/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var cache = HttpContext.RequestServices.GetRequiredService<ServicesCache>();
+
             if (_context.Services == null)
             {
                 return Problem("Entity set 'RealEstateAgencyContext.Services'  is null.");
             }
-            var service = await _context.Services.FindAsync(id);
+            var service = cache.GetServices().FirstOrDefault(m => m.Id == id);
             if (service != null)
             {
                 _context.Services.Remove(service);
             }
             
             await _context.SaveChangesAsync();
+            cache.SetServices();
             return RedirectToAction(nameof(Index));
         }
 

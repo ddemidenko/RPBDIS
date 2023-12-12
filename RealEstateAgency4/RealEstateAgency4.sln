@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealEstateAgency4", "RealEstateAgency4.csproj", "{B7047B81-E458-48CC-83F0-2051BC6A6317}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealEstateAgency4", "RealEstateAgency4.csproj", "{B7047B81-E458-48CC-83F0-2051BC6A6317}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diagrama", "..\Diagrama\Diagrama.csproj", "{A19A7717-2B24-4F46-970B-30201675FB5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{B7047B81-E458-48CC-83F0-2051BC6A6317}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7047B81-E458-48CC-83F0-2051BC6A6317}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7047B81-E458-48CC-83F0-2051BC6A6317}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A19A7717-2B24-4F46-970B-30201675FB5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A19A7717-2B24-4F46-970B-30201675FB5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A19A7717-2B24-4F46-970B-30201675FB5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A19A7717-2B24-4F46-970B-30201675FB5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
